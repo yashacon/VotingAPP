@@ -1,8 +1,8 @@
 from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib import messages,auth
-from django.contrib.auth.models import User
 from django.core.paginator import EmptyPage,Paginator
-from .models import Item,Voted
+from .models import Item,Voted,Userprofile
+from .forms import *
 # Create your views here.
 def login(request):
     if request.user.is_authenticated:
@@ -25,26 +25,15 @@ def login(request):
         return render(request,'login.html')
 def vote(request):
     if request.user.is_authenticated:
-        if request.user.is_staff:
-            items=Item.objects.all()
-            paginator=Paginator(items,3)
-            page=request.GET.get('page')
-            pagged_items=paginator.get_page(page)
+        items=Item.objects.all()
+        paginator=Paginator(items,3)
+        page=request.GET.get('page')
+        pagged_items=paginator.get_page(page)
 
-            context={
-                'items':pagged_items
-            }
-            return render(request,'items1.html',context)
-        else:
-            items=Item.objects.all()
-            paginator=Paginator(items,3)
-            page=request.GET.get('page')
-            pagged_items=paginator.get_page(page)
-
-            context={
-                'items':pagged_items
-            }
-            return render(request,'items.html',context)
+        context={
+           'items':pagged_items
+        }
+        return render(request,'items.html',context)
         
     else:
         messages.error(request,'You need to login to access the page')
@@ -106,33 +95,37 @@ def register(request):
         return redirect('Vote')
     if request.method=='POST':
         
-        username=request.POST['username']
-        email=request.POST['email']
-        password=request.POST['password']
-        password2=request.POST['password2']
+        form=ExtendedUserCreationForm(request.POST)
+        profile_form=UserprofileForm(request.POST,request.FILES)
+        print (str(form.is_valid())+"and"+str(profile_form.is_valid()))
+        if form.is_valid() and profile_form.is_valid():
+            
+            username=form.cleaned_data.get('username')
+            email=form.cleaned_data.get('email')
+            password=form.cleaned_data.get('password1')
+            password2=form.cleaned_data.get('password2')
+            dp=profile_form.cleaned_data.get('display_picture')
 
-        if password==password2:
-            if User.objects.filter(username=username).exists():
-                messages.error(request,'This Username is Not Available')
+            if User.objects.filter(email=email).exists():
+                messages.error(request,'This Email Already Exist')
                 return redirect('Register')
-            else:
-                if User.objects.filter(email=email).exists():
-                    messages.error(request,'This Email is being Used')
-                    return redirect('Register')
-                else:
-                    user=User.objects.create_user(
-                        username=username,
-                        password=password,
-                        email=email,
-                    )
-                    auth.login(request,user)
-                    messages.success(request,'You are logged in')
-                    return redirect('Vote')
+
+            user=form.save()
+            userprofile=Userprofile(user=user,display_picture=dp)
+            userprofile.save()
+
+            auth.login(request,user)
+            messages.success(request,'You are logged in')
+            return redirect('Vote')
         else:
-            messages.error(request,'Passwords do not match')
-            return redirect('Register')
+            for msg in form.error_messages:
+                print(form.error_messages[msg])
+
+            return render(request,"register.html",{'form':form,'profile_form':profile_form})
     else:
-        return render(request,'register.html')
+        form=ExtendedUserCreationForm()
+        profile_form=UserprofileForm()
+        return render(request,'register.html',{'form':form,'profile_form':profile_form})
 
 def logout(request):
     if request.method=='POST':

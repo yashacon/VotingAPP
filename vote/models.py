@@ -1,5 +1,22 @@
 from django.db import models
+from django.contrib.auth.models import User
+
+import os
+
+def get_upload_path(instance, filename):
+    fileName, fileExtension = os.path.splitext(filename)
+    return os.path.join(
+      "user_%s" % instance.user.username,"user_{0}.{1}" .format(instance.user.username,fileExtension) )
+
 # Create your models here.
+class Userprofile(models.Model):
+    user=models.OneToOneField(User,on_delete=models.CASCADE)
+    display_picture=models.ImageField(upload_to=get_upload_path)
+    def __str__(self):
+        return self.user.username
+
+
+
 class Item(models.Model):
     title=models.CharField(max_length=200)
     count=models.IntegerField(default=0)
