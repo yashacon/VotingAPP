@@ -7,6 +7,12 @@
 {% include 'partials/_alerts.html' %}
   <!-- Listings -->
   <section id="items" class="py-4">
+    {% if user.is_staff %}
+    <div class="nav-item mr-3">
+      <a class="nav-link" href="{% url 'AddItem' %}">
+        <i class="fas fa-user-plus"></i> Add New Item</a>
+      </div>
+    {% endif %}
     <div class="container">
       <div class="row">
         {% if items %}
@@ -18,10 +24,14 @@
                 <div class="card-body">
                   <div class="item-heading text-center">
                     <h4 class="text-primary">{{ item.title }}</h4>
-                    <p>
-                      
-                  </div>
+                  {% if user.is_staff %}
+                    <hr>
+                    <i class="fas fa-th-large"></i> {{ item.count }}
+                  {% else %}
+                  <p>
                   <a href="{% url 'Voting' title=item.title %}" class="btn btn-primary btn-block">Vote</a>
+                  {% endif %}
+                </div>
                 </div>
               </div>
             </div>
