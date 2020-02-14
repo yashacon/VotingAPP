@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 # Register your models here.
 from django.contrib.auth.models import User
-from .models import Item,Voted,Userprofile
+from .models import *
 
 class ItemAdmin(admin.ModelAdmin):
     list_display=('title','count')
@@ -12,16 +12,6 @@ class ItemAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Item,ItemAdmin)
-
-
-class VotedAdmin(admin.ModelAdmin):
-    list_display=['username']
-    list_display_links=['username']
-    search_fields=['username']
-    list_per_page=25
-
-
-admin.site.register(Voted,VotedAdmin)
 
 class UserprofileInline(admin.StackedInline):
     model=Userprofile

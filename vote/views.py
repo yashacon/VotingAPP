@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib import messages,auth
 from django.core.paginator import EmptyPage,Paginator
-from .models import Item,Voted,Userprofile
+from .models import *
 from .forms import *
 # Create your views here.
 def login(request):
@@ -55,15 +55,17 @@ def voting(request,title):
         else:
             voted_item=get_object_or_404(Item,title=title)
             username=request.user.username
-            users = [user.username for user in Voted.objects.all()]
-            if username in users:
+            user = get_object_or_404(User,username=username)
+            if user.userprofile.has_voted==True:
                 messages.error(request, 'You Have Already Voted')
                 return redirect('Vote') 
             else:
                 voted_item.count+=1
+                
+                user.userprofile.has_voted=True
+                user.userprofile.voted_item=voted_item.title
+                user.userprofile.save()
                 voted_item.save()
-                voted=Voted(username=username)
-                voted.save()
                 messages.success(request, 'Voted successfully')
                 return redirect('Vote')
     else:

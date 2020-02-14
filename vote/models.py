@@ -12,6 +12,8 @@ def get_upload_path(instance, filename):
 class Userprofile(models.Model):
     user=models.OneToOneField(User,on_delete=models.CASCADE)
     display_picture=models.ImageField(upload_to=get_upload_path)
+    has_voted=models.BooleanField(default=False)
+    voted_item=models.CharField(max_length=200,default='none')
     def __str__(self):
         return self.user.username
 
@@ -22,8 +24,3 @@ class Item(models.Model):
     count=models.IntegerField(default=0)
     def __str__(self):
         return 'Item {} is voted {}'.format(self.title, self.count)
-
-class Voted(models.Model):
-    username=models.CharField(max_length=200)
-    def __str__(self):
-        return self.username
